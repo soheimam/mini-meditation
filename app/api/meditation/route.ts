@@ -1,14 +1,6 @@
 import { NextRequest } from 'next/server';
 import { getMeditationStats, updateMeditationStats } from '@/lib/redis';
 
-interface MeditationStats {
-  totalSessions: number;
-  currentStreak: number;
-  lastMeditationDate: string | null;
-}
-
-// In-memory store for demo purposes. In production, use a proper database
-const meditationStats = new Map<number, MeditationStats>();
 
 export async function GET(request: NextRequest) {
   const fid = request.headers.get('X-Farcaster-FID');
