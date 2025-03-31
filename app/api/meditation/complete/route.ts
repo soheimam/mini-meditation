@@ -1,4 +1,12 @@
-import { updateMeditationStats } from "@/lib/meditation";
+import { MeditationService } from "@/lib/meditation";
+import { Redis } from "@upstash/redis";
+
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL!,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+});
+
+const meditationService = new MeditationService(redis);
 
 export async function POST(request: Request) {
   const fid = request.headers.get('X-Farcaster-FID');
@@ -8,7 +16,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const stats = await updateMeditationStats(parseInt(fid));
+    const stats = await meditationService.updateMeditationStats(parseInt(fid));
     return Response.json(stats);
   } catch (error) {
     console.error('Error updating meditation stats:', error);
