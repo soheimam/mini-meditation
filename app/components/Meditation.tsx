@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import CompletionScreen from './CompletionScreen';
 import BreathingCircle from './BreathingCircle';
 
@@ -12,7 +12,7 @@ interface MeditationStats {
 
 const Meditation: React.FC = () => {
   const [isActive, setIsActive] = useState(false);
-  const [breathCount, setBreathCount] = useState(0);
+  const [timeRemaining, setTimeRemaining] = useState(60); // 60 seconds
   const [phase, setPhase] = useState<'inhale' | 'hold' | 'exhale'>('inhale');
   const [isCompleted, setIsCompleted] = useState(false);
   const [stats, setStats] = useState<MeditationStats>({
@@ -20,7 +20,8 @@ const Meditation: React.FC = () => {
     currentStreak: 0,
     lastMeditationDate: null,
   });
-  const totalCycles = 10;
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const phaseTimerRef = useRef<NodeJS.Timeout>();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -43,59 +44,83 @@ const Meditation: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (!isActive || isCompleted) {
+      if (phaseTimerRef.current) {
+        clearTimeout(phaseTimerRef.current);
+      }
+      return;
+    }
+
+    const nextPhase = () => {
+      setPhase(currentPhase => {
+        switch (currentPhase) {
+          case 'inhale':
+            return 'hold';
+          case 'hold':
+            return 'exhale';
+          case 'exhale':
+            return 'inhale';
+          default:
+            return 'inhale';
+        }
+      });
+    };
+
+    phaseTimerRef.current = setTimeout(nextPhase, 4000);
+
+    return () => {
+      if (phaseTimerRef.current) {
+        clearTimeout(phaseTimerRef.current);
+      }
+    };
+  }, [phase, isActive, isCompleted]);
+
+  useEffect(() => {
     let timer: NodeJS.Timeout;
 
-    if (isActive) {
-      // Breathing cycle timing (in milliseconds)
-      const inhaleTime = 4000; // 4 seconds
-      const holdTime = 4000;   // 4 seconds
-      const exhaleTime = 4000; // 4 seconds
-
-      if (phase === 'inhale') {
-        timer = setTimeout(() => {
-          setPhase('hold');
-        }, inhaleTime);
-      } else if (phase === 'hold') {
-        timer = setTimeout(() => {
-          setPhase('exhale');
-        }, holdTime);
-      } else {
-        timer = setTimeout(() => {
-          setPhase('inhale');
-          setBreathCount((prev) => {
-            if (prev + 1 >= totalCycles) {
-              setIsActive(false);
-              setIsCompleted(true);
-              // Update stats in API
-              fetch('/api/meditation', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-              })
-                .then(response => response.json())
-                .then(data => setStats(data))
-                .catch(error => console.error('Failed to update meditation stats:', error));
-              return 0;
+    if (isActive && timeRemaining > 0) {
+      timer = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev <= 1) {
+            setIsActive(false);
+            setIsCompleted(true);
+            if (audioRef.current) {
+              audioRef.current.pause();
+              audioRef.current.currentTime = 0;
             }
-            return prev + 1;
-          });
-        }, exhaleTime);
-      }
+            // Update stats in API
+            fetch('/api/meditation', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            })
+              .then(response => response.json())
+              .then(data => setStats(data))
+              .catch(error => console.error('Failed to update meditation stats:', error));
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     }
 
     return () => {
-      if (timer) {
-        clearTimeout(timer);
-      }
+      if (timer) clearInterval(timer);
     };
-  }, [isActive, phase]);
+  }, [isActive, timeRemaining]);
 
   const handleStart = () => {
     setIsActive(true);
-    setBreathCount(0);
+    setTimeRemaining(60);
     setPhase('inhale');
     setIsCompleted(false);
+    if (audioRef.current) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play().catch(error => {
+        console.error('Failed to play audio:', error);
+      });
+    }
   };
 
   if (isCompleted) {
@@ -104,6 +129,11 @@ const Meditation: React.FC = () => {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-600 to-blue-400 p-4">
+      <audio
+        ref={audioRef}
+        src="/sound/evening-birds-singing-in-spring-background-sounds-of-nature-146388.mp3"
+        loop
+      />
       <div className="flex flex-col items-center justify-center max-w-md w-full text-center space-y-8">
         <h1 className="text-3xl font-bold mb-6 text-white">Mini Headspace</h1>
         
@@ -121,17 +151,6 @@ const Meditation: React.FC = () => {
               {phase === 'inhale' && 'Breathe In'}
               {phase === 'hold' && 'Hold'}
               {phase === 'exhale' && 'Breathe Out'}
-            </div>
-            <div className="text-xl text-white">
-              Breath Cycle: {breathCount + 1} / {totalCycles}
-            </div>
-            <div className="h-4 bg-white/30 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-white transition-all duration-300"
-                style={{
-                  width: `${((breathCount + 1) / totalCycles) * 100}%`,
-                }}
-              />
             </div>
           </div>
         )}
