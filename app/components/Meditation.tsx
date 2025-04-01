@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import CompletionScreen from './CompletionScreen';
 import BreathingCircle from './BreathingCircle';
+import { useMiniKit } from '@coinbase/onchainkit/minikit';
+
 
 interface MeditationStats {
   totalSessions: number;
@@ -23,6 +25,7 @@ const Meditation: React.FC = () => {
   });
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const phaseTimerRef = useRef<NodeJS.Timeout>();
+  const { context } = useMiniKit();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -43,24 +46,6 @@ const Meditation: React.FC = () => {
     };
     fetchStats();
 
-    // Fetch notification preferences
-    const fetchNotificationPreferences = async () => {
-      try {
-        const response = await fetch('/api/meditation/reminder', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-        if (response.ok) {
-          const { enabled } = await response.json();
-          setNotificationsEnabled(enabled);
-        }
-      } catch (error) {
-        console.error('Failed to fetch notification preferences:', error);
-      }
-    };
-    fetchNotificationPreferences();
   }, []);
 
   useEffect(() => {
@@ -108,11 +93,13 @@ const Meditation: React.FC = () => {
               audioRef.current.pause();
               audioRef.current.currentTime = 0;
             }
+            console.log('Updating meditation stats');
             // Update stats in API
-            fetch('/api/meditation', {
+            fetch('/api/meditation/complete', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                'X-Farcaster-FID': context?.user.fid.toString() ?? '',
               },
             })
               .then(response => response.json())
