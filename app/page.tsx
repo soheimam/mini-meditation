@@ -5,7 +5,7 @@ import {
   useAddFrame,
   useOpenUrl,
 } from "@coinbase/onchainkit/minikit";
-import { Name, Identity, Badge } from "@coinbase/onchainkit/identity";
+// import { Name, Identity, Badge } from "@coinbase/onchainkit/identity";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Meditation from "./components/Meditation";
 import { useAccount } from "wagmi";
@@ -63,7 +63,7 @@ export default function App() {
       <div className="w-screen max-w-[520px]">
         <header className="mr-2 mt-1 flex justify-between">
           <div className="justify-start pl-1">
-            {address ? (
+            {/* {address ? (
               <Identity
                 address={address}
                 
@@ -80,7 +80,7 @@ export default function App() {
               <div className="pl-2 pt-1 text-gray-500 text-sm font-semibold">
                 NOT CONNECTED
               </div>
-            )}
+            )} */}
           </div>
           <div className="pr-1 justify-end">{saveFrameButton}</div>
         </header>

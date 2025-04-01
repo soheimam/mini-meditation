@@ -3,7 +3,7 @@ import { Redis } from "@upstash/redis";
 
 const redis = Redis.fromEnv();
 
-export async function POST(request: Request) {
+export async function POST() {
   try {
     // Get all users who have enabled notifications
     const users = await redis.smembers("meditation:reminder:users");
