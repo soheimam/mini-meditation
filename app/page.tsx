@@ -1,14 +1,13 @@
 "use client";
-
 import {
   useMiniKit,
   useAddFrame,
   useOpenUrl,
 } from "@coinbase/onchainkit/minikit";
-// import { Name, Identity, Badge } from "@coinbase/onchainkit/identity";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Meditation from "./components/Meditation";
-import { useAccount } from "wagmi";
+// import { useAccount } from "wagmi";
 import Check from "./svg/Check";
 
 
@@ -20,7 +19,7 @@ export default function App() {
 
   const addFrame = useAddFrame();
   const openUrl = useOpenUrl();
-  const { address } = useAccount();
+  
 
   useEffect(() => {
     if (!isFrameReady) {
@@ -63,24 +62,7 @@ export default function App() {
       <div className="w-screen max-w-[520px]">
         <header className="mr-2 mt-1 flex justify-between">
           <div className="justify-start pl-1">
-            {/* {address ? (
-              <Identity
-                address={address}
-                
-                className="!bg-inherit p-0 [&>div]:space-x-2"
-              >
-                <Name className="text-inherit">
-                  <Badge
-                    tooltip="High Scorer"
-                    className="!bg-inherit high-score-badge"
-                  />
-                </Name>
-              </Identity>
-            ) : (
-              <div className="pl-2 pt-1 text-gray-500 text-sm font-semibold">
-                NOT CONNECTED
-              </div>
-            )} */}
+         
           </div>
           <div className="pr-1 justify-end">{saveFrameButton}</div>
         </header>

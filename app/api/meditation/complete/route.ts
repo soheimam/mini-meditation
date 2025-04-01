@@ -1,6 +1,6 @@
 import { MeditationService } from "@/lib/meditation";
 import { Redis } from "@upstash/redis";
-import { sendFrameNotification } from "@/lib/notification-client";
+
 
 const redis = Redis.fromEnv();
 const meditationService = new MeditationService(redis);
