@@ -15,6 +15,7 @@ const Meditation: React.FC = () => {
   const [timeRemaining, setTimeRemaining] = useState(60); // 60 seconds
   const [phase, setPhase] = useState<'inhale' | 'hold' | 'exhale'>('inhale');
   const [isCompleted, setIsCompleted] = useState(false);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [stats, setStats] = useState<MeditationStats>({
     totalSessions: 0,
     currentStreak: 0,
@@ -41,6 +42,25 @@ const Meditation: React.FC = () => {
       }
     };
     fetchStats();
+
+    // Fetch notification preferences
+    const fetchNotificationPreferences = async () => {
+      try {
+        const response = await fetch('/api/meditation/reminder', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        if (response.ok) {
+          const { enabled } = await response.json();
+          setNotificationsEnabled(enabled);
+        }
+      } catch (error) {
+        console.error('Failed to fetch notification preferences:', error);
+      }
+    };
+    fetchNotificationPreferences();
   }, []);
 
   useEffect(() => {
@@ -123,6 +143,24 @@ const Meditation: React.FC = () => {
     }
   };
 
+  const toggleNotifications = async () => {
+    try {
+      const response = await fetch('/api/meditation/reminder', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ enabled: !notificationsEnabled }),
+      });
+      
+      if (response.ok) {
+        setNotificationsEnabled(!notificationsEnabled);
+      }
+    } catch (error) {
+      console.error('Failed to update notification preferences:', error);
+    }
+  };
+
   if (isCompleted) {
     return <CompletionScreen stats={stats} onStartNewSession={handleStart} />;
   }
@@ -138,12 +176,24 @@ const Meditation: React.FC = () => {
         <h1 className="text-3xl font-bold mb-6 text-white">Mini Headspace</h1>
         
         {!isActive ? (
-          <button
-            onClick={handleStart}
-            className="bg-white hover:bg-gray-100 text-blue-600 font-semibold py-3 px-6 rounded-full transition-colors duration-200 shadow-lg"
-          >
-            Start Meditation
-          </button>
+          <>
+            <button
+              onClick={handleStart}
+              className="bg-white hover:bg-gray-100 text-blue-600 font-semibold py-3 px-6 rounded-full transition-colors duration-200 shadow-lg"
+            >
+              Start Meditation
+            </button>
+            <button
+              onClick={toggleNotifications}
+              className={`mt-4 text-sm font-semibold py-2 px-4 rounded-full transition-colors duration-200 ${
+                notificationsEnabled 
+                  ? 'bg-white text-blue-600' 
+                  : 'bg-blue-500 text-white border border-white'
+              }`}
+            >
+              {notificationsEnabled ? '🔔 Daily Reminders On' : '🔕 Enable Daily Reminders'}
+            </button>
+          </>
         ) : (
           <div className="space-y-8">
             <BreathingCircle phase={phase} />
