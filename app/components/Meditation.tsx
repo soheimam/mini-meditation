@@ -4,7 +4,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import CompletionScreen from './CompletionScreen';
 import BreathingCircle from './BreathingCircle';
 import { useMiniKit } from '@coinbase/onchainkit/minikit';
-
+import { useAccount } from 'wagmi';
+import WalletControl from './WalletControl';
+import MeditationWalletButton from './MeditationWalletButton';
 
 interface MeditationStats {
   totalSessions: number;
@@ -26,6 +28,7 @@ const Meditation: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const phaseTimerRef = useRef<NodeJS.Timeout>();
   const { context } = useMiniKit();
+  const { isConnected } = useAccount();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -175,11 +178,19 @@ const Meditation: React.FC = () => {
   };
 
   if (isCompleted) {
-    return <CompletionScreen stats={stats} onStartNewSession={handleStart} />;
+    return (
+      <CompletionScreen 
+        stats={stats} 
+        onStartNewSession={handleStart} 
+        notificationsEnabled={notificationsEnabled}
+        toggleNotifications={toggleNotifications}
+      />
+    );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-600 to-blue-400 p-4">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-600 to-blue-400 p-4 relative">
+      <WalletControl />
       <audio
         ref={audioRef}
         src="/sound/evening-birds-singing-in-spring-background-sounds-of-nature-146388.mp3"
@@ -190,26 +201,11 @@ const Meditation: React.FC = () => {
         
         {!isActive ? (
           <>
-            <button
-              onClick={handleStart}
-              className="bg-white hover:bg-gray-100 text-blue-600 font-semibold py-3 px-6 rounded-full transition-colors duration-200 shadow-lg"
-            >
-              Start Meditation
-            </button>
-            <button
-              onClick={toggleNotifications}
-              className={`mt-4 text-sm font-semibold py-2 px-4 rounded-full transition-colors duration-200 ${
-                notificationsEnabled 
-                  ? 'bg-white text-blue-600' 
-                  : 'bg-blue-500 text-white border border-white'
-              }`}
-            >
-              {notificationsEnabled ? '🔔 Daily Reminders On' : '🔕 Enable Daily Reminders'}
-            </button>
+            <MeditationWalletButton onStart={handleStart} />
           </>
         ) : (
           <div className="space-y-8">
-            <BreathingCircle phase={phase} />
+            <BreathingCircle phase={phase} timeRemaining={timeRemaining} totalTime={60} />
             <div className="text-2xl font-light text-white mb-4">
               {phase === 'inhale' && 'Breathe In'}
               {phase === 'hold' && 'Hold'}

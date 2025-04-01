@@ -12,6 +12,8 @@ interface MeditationStats {
 interface CompletionScreenProps {
   stats: MeditationStats;
   onStartNewSession: () => void;
+  notificationsEnabled: boolean;
+  toggleNotifications: () => void;
 }
 
 const Cloud: React.FC<{ delay?: number; duration?: number; scale?: number; top?: string }> = ({
@@ -44,7 +46,12 @@ const Cloud: React.FC<{ delay?: number; duration?: number; scale?: number; top?:
   );
 };
 
-const CompletionScreen: React.FC<CompletionScreenProps> = ({ stats, onStartNewSession }) => {
+const CompletionScreen: React.FC<CompletionScreenProps> = ({ 
+  stats, 
+  onStartNewSession,
+  notificationsEnabled,
+  toggleNotifications
+}) => {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-[#4169E1] p-4 overflow-hidden relative">
       {/* Background Clouds */}
@@ -85,7 +92,7 @@ const CompletionScreen: React.FC<CompletionScreenProps> = ({ stats, onStartNewSe
           </motion.div>
         </div>
         
-        <div className="mt-16">
+        <div className="mt-16 flex flex-col items-center gap-4">
           <motion.button
             onClick={onStartNewSession}
             className="bg-white hover:bg-gray-100 text-[#4169E1] font-semibold py-4 px-8 rounded-full transition-colors duration-200 text-xl shadow-lg"
@@ -93,6 +100,20 @@ const CompletionScreen: React.FC<CompletionScreenProps> = ({ stats, onStartNewSe
             whileTap={{ scale: 0.95 }}
           >
             Start Another Session
+          </motion.button>
+          
+          <motion.button
+            onClick={toggleNotifications}
+            className={`mt-4 text-sm font-semibold py-3 px-6 rounded-full transition-colors duration-200 ${
+              notificationsEnabled 
+                ? 'bg-white text-[#4169E1]' 
+                : 'bg-blue-700 text-white border border-white'
+            }`}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
+            {notificationsEnabled ? '🔔 Daily Reminders Enabled' : '🔕 Enable Daily Reminders'}
           </motion.button>
         </div>
       </div>

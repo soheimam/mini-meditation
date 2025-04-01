@@ -53,3 +53,12 @@
   --ock-line-heavy: theme(colors.gray.500);
   --ock-line-inverse: theme(colors.gray.300);
 }
+.ock-bg-secondary{
+  background-color: #ff6600 !important;
+}
+.ock-bg-secondary-hover{
+  background-color: #ff6600 !important;
+}
+.ock-bg-secondary-active{
+  background-color: #ff6600 !important;
+}
