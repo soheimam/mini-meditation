@@ -28,7 +28,7 @@ const Meditation: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const phaseTimerRef = useRef<NodeJS.Timeout>();
   const { context } = useMiniKit();
-  const { isConnected } = useAccount();
+  
 
   useEffect(() => {
     const fetchStats = async () => {
