@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import CompletionScreen from './CompletionScreen';
 import BreathingCircle from './BreathingCircle';
 import { useMiniKit } from '@coinbase/onchainkit/minikit';
-import { useAccount } from 'wagmi';
+
 import WalletControl from './WalletControl';
 import MeditationWalletButton from './MeditationWalletButton';
 
