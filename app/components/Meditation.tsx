@@ -30,7 +30,7 @@ const Meditation: React.FC = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const response = await fetch('/api/meditation', {
+        const response = await fetch('/api/meditation/stats', {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -47,6 +47,30 @@ const Meditation: React.FC = () => {
     fetchStats();
 
   }, []);
+
+  useEffect(() => {
+    const fetchNotificationPreference = async () => {
+      try {
+        const response = await fetch('/api/meditation/reminder', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Farcaster-FID': context?.user.fid.toString() ?? '',
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setNotificationsEnabled(data.enabled);
+        }
+      } catch (error) {
+        console.error('Failed to fetch notification preferences:', error);
+      }
+    };
+
+    if (context?.user.fid) {
+      fetchNotificationPreference();
+    }
+  }, [context?.user.fid]);
 
   useEffect(() => {
     if (!isActive || isCompleted) {
@@ -131,11 +155,13 @@ const Meditation: React.FC = () => {
   };
 
   const toggleNotifications = async () => {
+    console.log(`Toggling notifications for ${context?.user.fid}`);
     try {
       const response = await fetch('/api/meditation/reminder', {
-        method: 'PUT',
+        method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'X-Farcaster-FID': context?.user.fid.toString() ?? '',
         },
         body: JSON.stringify({ enabled: !notificationsEnabled }),
       });
