@@ -126,7 +126,7 @@ const CompletionScreen: React.FC<CompletionScreenProps> = ({
           
           {notificationsEnabled && (
             <div className="text-white text-xs mt-2 max-w-xs text-center opacity-80">
-              You'll receive a daily reminder to meditate if you haven't completed a session today
+              Receive a daily reminder to meditate.
             </div>
           )}
         </div>

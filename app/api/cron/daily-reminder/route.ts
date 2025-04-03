@@ -1,11 +1,13 @@
 import { Redis } from "@upstash/redis";
-import { sendFrameNotification } from "@/lib/notification-client";
+
 import { MeditationService } from "@/lib/meditation";
 import { getUserNotificationDetails } from "@/lib/notification";
+import { type SendNotificationRequest } from "@farcaster/frame-sdk";
 
 // Initialize Redis and meditation service
 const redis = Redis.fromEnv();
 const meditationService = new MeditationService(redis);
+const appUrl = process.env.NEXT_PUBLIC_URL || "";
 
 /**
  * Helper function to determine if a date is more than 24 hours in the past
@@ -16,6 +18,42 @@ function isMoreThan24HoursAgo(dateString: string): boolean {
   const now = new Date();
   const diffInHours = (now.getTime() - date.getTime()) / (1000 * 60 * 60);
   return diffInHours >= 24;
+}
+
+/**
+ * Sends a notification directly using the token and URL
+ */
+async function sendDirectNotification({
+  token, 
+  url, 
+  title, 
+  body
+}: { 
+  token: string; 
+  url: string; 
+  title: string; 
+  body: string;
+}): Promise<boolean> {
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        notificationId: crypto.randomUUID(),
+        title,
+        body,
+        targetUrl: appUrl,
+        tokens: [token],
+      } satisfies SendNotificationRequest),
+    });
+    
+    return response.status === 200;
+  } catch (error) {
+    console.error('Error sending direct notification:', error);
+    return false;
+  }
 }
 
 /**
@@ -70,31 +108,42 @@ export async function GET(request: Request) {
           // Try sending notification
           let notificationSent = false;
           
-          // First try using token and URL from preference if available
+          // First, try using token and URL from preference if available
           if (preference.token && preference.url) {
-            try {
-              await sendFrameNotification({
-                fid,
-                title: "Daily Meditation Reminder",
-                body: "Take a moment to breathe and center yourself with a meditation session.",
-              });
-              notificationSent = true;
-            } catch (error) {
-              console.error(`Error sending notification with preference token for FID ${fid}:`, error);
+            notificationSent = await sendDirectNotification({
+              token: preference.token,
+              url: preference.url,
+              title: "Daily Meditation Reminder",
+              body: "Take a moment to breathe and center yourself with a meditation session."
+            });
+            
+            if (notificationSent) {
+              console.log(`Notification sent using preference token for FID ${fid}`);
+            } else {
+              console.warn(`Failed to send notification with preference token for FID ${fid}`);
             }
           }
           
           // If that didn't work, try using the notification service as a fallback
           if (!notificationSent) {
-            try {
-              await sendFrameNotification({
-                fid,
+            // Get notification details from the notification system
+            const notificationDetails = await getUserNotificationDetails(fid);
+            
+            if (notificationDetails?.token && notificationDetails?.url) {
+              notificationSent = await sendDirectNotification({
+                token: notificationDetails.token,
+                url: notificationDetails.url,
                 title: "Daily Meditation Reminder",
-                body: "Take a moment to breathe and center yourself with a meditation session.",
+                body: "Take a moment to breathe and center yourself with a meditation session."
               });
-              notificationSent = true;
-            } catch (error) {
-              console.error(`Error sending notification via notification service for FID ${fid}:`, error);
+              
+              if (notificationSent) {
+                console.log(`Notification sent using notification service for FID ${fid}`);
+              } else {
+                console.warn(`Failed to send notification via notification service for FID ${fid}`);
+              }
+            } else {
+              console.warn(`No notification details found for FID ${fid}`);
             }
           }
 
