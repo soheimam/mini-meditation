@@ -113,8 +113,22 @@ const CompletionScreen: React.FC<CompletionScreenProps> = ({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
           >
-            {notificationsEnabled ? '🔔 Daily Reminders Enabled' : '🔕 Enable Daily Reminders'}
+            {notificationsEnabled 
+              ? '🔔 Daily Reminders Enabled' 
+              : '🔕 Add Frame to Enable Daily Reminders'}
           </motion.button>
+          
+          {!notificationsEnabled && (
+            <div className="text-white text-xs mt-2 max-w-xs text-center opacity-80">
+              <p>Click to add this app to your Farcaster frames to receive daily meditation reminders</p>
+            </div>
+          )}
+          
+          {notificationsEnabled && (
+            <div className="text-white text-xs mt-2 max-w-xs text-center opacity-80">
+              You'll receive a daily reminder to meditate if you haven't completed a session today
+            </div>
+          )}
         </div>
       </div>
     </div>

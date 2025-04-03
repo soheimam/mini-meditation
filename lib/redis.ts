@@ -1,3 +1,12 @@
+/**
+ * Redis Client Configuration
+ * 
+ * - Uses Upstash Redis for serverless data storage
+ * - Stores meditation session data by user (fid)
+ * - Tracks total sessions, meditation streaks, and last meditation date
+ * - Keys are formatted as `meditation:{fid}` for each user
+ */
+
 import { Redis } from "@upstash/redis";
 
 if (!process.env.UPSTASH_REDIS_REST_URL || !process.env.UPSTASH_REDIS_REST_TOKEN) {
@@ -9,12 +18,20 @@ const redis = new Redis({
   token: process.env.UPSTASH_REDIS_REST_TOKEN,
 });
 
+/**
+ * Structure for user meditation statistics
+ */
 interface MeditationStats {
   totalSessions: number;
   currentStreak: number;
   lastMeditationDate: string | null;
 }
 
+/**
+ * Retrieves meditation statistics for a specific user
+ * @param fid User identifier
+ * @returns Current meditation statistics or default values
+ */
 export async function getMeditationStats(fid: number): Promise<MeditationStats> {
   const key = `meditation:${fid}`;
   const stats = await redis.get<MeditationStats>(key);
@@ -26,6 +43,11 @@ export async function getMeditationStats(fid: number): Promise<MeditationStats> 
   };
 }
 
+/**
+ * Updates meditation statistics after a new session
+ * @param fid User identifier
+ * @returns Updated meditation statistics with streak calculation
+ */
 export async function updateMeditationStats(fid: number): Promise<MeditationStats> {
   const key = `meditation:${fid}`;
   const currentStats = await getMeditationStats(fid);

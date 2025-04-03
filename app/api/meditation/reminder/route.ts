@@ -1,10 +1,13 @@
 import { Redis } from "@upstash/redis";
+import { setUserNotificationDetails } from "@/lib/notification";
 
 const redis = Redis.fromEnv();
 
 interface ReminderPreference {
   enabled: boolean;
   lastNotificationSent?: string;
+  token?: string;
+  url?: string;
 }
 
 function getUserReminderKey(fid: number): string {
@@ -19,7 +22,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { enabled } = await request.json();
+    const { enabled, token, url } = await request.json();
 
     if (typeof enabled !== 'boolean') {
       return Response.json({ error: 'enabled must be a boolean' }, { status: 400 });
@@ -29,6 +32,15 @@ export async function POST(request: Request) {
       enabled,
       lastNotificationSent: enabled ? new Date().toISOString() : undefined
     };
+
+    // If token and url are provided, store them for notifications
+    if (enabled && token && url) {
+      preference.token = token;
+      preference.url = url;
+      
+      // Also store the notification details using the notification system
+      await setUserNotificationDetails(parseInt(fid), { token, url });
+    }
 
     await redis.set(getUserReminderKey(parseInt(fid)), preference);
     
