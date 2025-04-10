@@ -3,7 +3,7 @@
 ## Quick Start Guide
 
 ### Prerequisites
-- Node.js (v16+)
+- Node.js (v20+)
 - npm, yarn, pnpm, or bun
 - Redis instance (Upstash recommended)
 

@@ -16,21 +16,21 @@ const BreathingCircle: React.FC<BreathingCircleProps> = ({
 }) => {
   const circleVariants = {
     inhale: {
-      scale: 0.5,
+      scale: 1,
       transition: {
         duration: 4,
         ease: "easeInOut"
       }
     },
     hold: {
-      scale: 0.5,
+      scale: 1,
       transition: {
         duration: 4,
         ease: "linear"
       }
     },
     exhale: {
-      scale: 1,
+      scale: 0.5,
       transition: {
         duration: 4,
         ease: "easeInOut"
